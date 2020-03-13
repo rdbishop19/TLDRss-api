@@ -17,7 +17,15 @@ from django.contrib import admin
 from django.urls import include, path
 from django.conf import settings # debug-toolbar
 
+from rest_framework import routers
+from rest_framework.authtoken.views import obtain_auth_token
+
+ROUTER = routers.DefaultRouter(trailing_slash=False)
+
 urlpatterns = [
+    path('', include(ROUTER.urls)),
+    path('api-token-auth/', obtain_auth_token),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('admin/', admin.site.urls),
 ]
 
