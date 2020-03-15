@@ -20,11 +20,12 @@ from django.conf import settings # debug-toolbar
 from rest_framework import routers
 from rest_framework.authtoken.views import obtain_auth_token
 
-from tldrss.views import ArticleViewSet, FeedViewSet
+from tldrss.views import ArticleViewSet, FeedViewSet, SummaryViewSet
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'article', ArticleViewSet)
 router.register(r'feed', FeedViewSet)
+router.register(r'summary', SummaryViewSet)
 
 urlpatterns = router.urls + [
     path('', include(router.urls)),
