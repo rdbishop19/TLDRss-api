@@ -13,10 +13,10 @@ class FeedSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Feed
-        url = serializers.HyperlinkedIdentityField(
-            view_name='feed',
-            lookup_field='id'
-        )
+        # url = serializers.HyperlinkedIdentityField(
+        #     view_name='feed',
+        #     lookup_field='id'
+        # )
         fields = '__all__'
 
 class FeedViewSet(viewsets.ModelViewSet):
