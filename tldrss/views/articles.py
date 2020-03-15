@@ -19,9 +19,9 @@ class ArticleSerializer(serializers.HyperlinkedModelSerializer):
     feed = FeedSerializer()
     class Meta:
         model = Article
-        
-        fields = '__all__'
-        # exclude = ['feed']
+        ### defining the `url` field is not actually needed like we did in class. 
+        ### Inherited serializer base class knows to look for `id` field
+        fields = ('url', 'title', 'link', 'description', 'pub_date', 'created_at', 'feed')
 
 class ArticleViewSet(viewsets.ModelViewSet):
     '''ViewSet for RSS articles'''
