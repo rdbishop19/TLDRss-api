@@ -1,0 +1,28 @@
+from django.http import HttpResponseServerError
+from django.contrib.auth.models import User
+
+from rest_framework import viewsets
+from rest_framework.response import Response
+from rest_framework import serializers
+from rest_framework import status
+
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+    """JSON serializer for user
+
+    Arguments:
+        serializers.HyperlinkedModelSerializer
+    """
+
+    class Meta:
+        model = User
+        url = serializers.HyperlinkedIdentityField(
+            view_name='user',
+            lookup_field='id'
+        )
+        
+        fields = ('id', 'username','first_name', 'last_name', 'email')
+
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
