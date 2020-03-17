@@ -1,4 +1,7 @@
 import json
+import datetime
+
+from unittest.mock import patch
 
 from django.test import TestCase
 from django.contrib.auth.models import User
@@ -57,6 +60,8 @@ class SummaryEndpointTestCase(TestCase):
         # print(response.data)
         self.assertEqual(response.status_code, 201)
 
+        # make sure both DateTime fields match for initial creation
+        self.assertAlmostEqual(response.data['created_on'], response.data['updated_on'])
     
     def test_get_list(self):
         '''test we can get a list of summary items'''
@@ -90,12 +95,52 @@ class SummaryEndpointTestCase(TestCase):
             # 'user_id': self.user.id,
             'user': 1,
             # 'user': 'http://testserver' + reverse('user-detail', kwargs={'pk': 1}),
-            # 'article': self.article.id,
-            'article': 'http://testserver' + reverse('article-detail', kwargs={'pk': 1}),
-            'summary_text': lorem_ipsum[:256],
+            'article': self.article.id,
+            # 'article': 'http://testserver' + reverse('article-detail', kwargs={'pk': 1}),
+            'summary_text': lorem_ipsum[:255],
         }
 
         response = self.client.post(reverse('summary-list'), summary_max_length, content_type="application/json")
         # print(response.data)
         self.assertEqual(response.status_code, 400)
+
+    def test_delete_summmary(self):
+        '''test user can delete their summary'''
+
+        summary = Summary.objects.get(pk=1)
+        # use the client to send the request and store the response
+        response = self.client.delete(
+            reverse('summary-detail', kwargs={'pk': summary.id}),
+            # reverse('summary-detail', kwargs={'pk': summary.id}), HTTP_AUTHORIZATION='Token ' + str(self.token)
+        )
+        # response for successful DELETE
+        self.assertEqual(response.status_code, 204)
+
+        # product not in db
+        response = self.client.get(reverse('summary-list'))
+        # response = self.client.get(reverse('summary-list'), HTTP_AUTHORIZATION='Token ' + str(self.token))
+        self.assertEqual(len(response.data['results']), 0)
+
+    def test_edit_summary(self):
+        '''test user can edit a summary'''
+
+        edited_summary = {
+            'summary_text': 'edited summary',
+        }
+
+        response = self.client.patch(
+            reverse('summary-detail', kwargs={'pk': 1}), edited_summary,
+            # reverse('summary-detail', kwargs={'pk': 1}), edited_summary, HTTP_AUTHORIZATION='Token ' + str(self.token),
+            content_type="application/json"
+        )
+
+        self.assertEqual(response.status_code, 204)
+
+        summary = Summary.objects.get()
+
+        # check that the patched data is reflected in the new object
+        self.assertEqual(summary.summary_text, "edited summary")
+        
+        # make sure both DateTime fields no longer match
+        self.assertNotEqual(summary.created_on, summary.updated_on)
 

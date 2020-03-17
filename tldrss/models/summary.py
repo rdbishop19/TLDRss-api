@@ -7,8 +7,8 @@ class Summary(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     article = models.ForeignKey(Article, on_delete=models.CASCADE)
     summary_text = models.CharField(max_length=255, null=False)
-    created_on = models.DateTimeField(auto_now=True, auto_now_add=False)
-    edited_on = models.DateTimeField(auto_now=False, blank=True, null=True)
+    created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)
     class Meta:
         # verbose_name = "summary"
         verbose_name_plural = "summaries"
