@@ -21,6 +21,10 @@ class ArticleSerializer(serializers.HyperlinkedModelSerializer):
         model = Article
         ### defining the `url` field is not actually needed like we did in class. 
         ### Inherited serializer base class knows to look for `id` field
+        url = serializers.HyperlinkedIdentityField(
+            view_name='article',
+            lookup_field='id'
+        )
         fields = ('url', 'title', 'link', 'description', 'pub_date', 'created_at', 'feed')
 
 class ArticleViewSet(viewsets.ModelViewSet):
