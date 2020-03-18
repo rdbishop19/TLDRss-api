@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     'corsheaders',
     
     # custom apps
-    'tldrss'
+    'tldrss.apps.TldrssConfig'
 ]
 
 REST_FRAMEWORK = {
