@@ -4,7 +4,7 @@ import time
 from tldrss.helpers import RssAggregator
 from tldrss.models import Feed, Article
 
-# LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 def get_updated_articles() -> None:
     '''
@@ -16,7 +16,7 @@ def get_updated_articles() -> None:
         None
     '''
 
-    # LOGGER.info('FETCHING NEW RSS ARTICLES')
+    LOGGER.info('FETCHING NEW RSS ARTICLES')
 
     db_feeds = Feed.objects.all()
     entries = []
@@ -51,10 +51,10 @@ def get_updated_articles() -> None:
 
                 entries.append(new_entry)
 
-                # LOGGER.info('NEW TITLE: %s', new_entry.link)
+                LOGGER.info('NEW TITLE: %s', new_entry.link)
                 new_entries += 1
 
-        # LOGGER.info(
-        #     'SUMMARY: %(feed)s PREVIOUS: %(prev)s NEW: %(new)s', \
-        #     {"feed": feed.name, "prev": prev_entries, "new": new_entries}
-        # )
+        LOGGER.info(
+            'SUMMARY: %(feed)s PREVIOUS: %(prev)s NEW: %(new)s', \
+            {"feed": feed.name, "prev": prev_entries, "new": new_entries}
+        )
