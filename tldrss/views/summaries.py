@@ -1,5 +1,8 @@
 import datetime
 
+from django.http import HttpResponseServerError
+
+# from rest_framework import viewsets
 from rest_framework import viewsets
 from rest_framework import serializers
 from rest_framework.response import Response
@@ -20,16 +23,40 @@ class SummaryViewSet(viewsets.ModelViewSet):
     queryset = Summary.objects.all()
     serializer_class = SummarySerializer
 
-    def list(self, request):
+    # def retrieve(self, request, pk=None):
+    #     '''get one item'''
+
+    #     try:
+    #         summary = Summary.objects.get(pk=pk)
+    #         serializer = SummarySerializer(summary, context={'request': request})
+    #         return Response(serializer.data)
+    #     except Exception as ex:
+    #         return HttpResponseServerError(ex)
+
+    def list(self, request, *args, **kwargs):
         '''custom list method with filters'''
 
         summaries = Summary.objects.all()
 
         user_only = request.query_params.get('user', False)
+        article_id = request.query_params.get('article', None)
+
+        if article_id:
+            summaries = summaries.filter(article_id=article_id)
 
         if user_only == "true":
-            console.log('true')
-            summaries = summaries.filter(user__id=request.auth.user.id)
+            user = request.auth.user
+            summaries = summaries.filter(user_id=user.id)
+
+        page = self.paginate_queryset(summaries)
+        serializer = SummarySerializer(
+            page,
+            many=True,
+            context={'request': request}
+        )
+        # https://stackoverflow.com/questions/31785966/django-rest-framework-turn-on-pagination-on-a-viewset-like-modelviewset-pagina
+        return self.get_paginated_response(serializer.data)
+
     # def create(self, request, *args, **kwargs):
     #     '''Handle POST'''
 
@@ -43,26 +70,6 @@ class SummaryViewSet(viewsets.ModelViewSet):
     #     serializer = SummarySerializer(new_summary, context={'request': request})
 
     #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-# def partial_update(self, request, pk=None):
-#         """Handle PUT requests for an individual payment type item
-#         Returns:
-#             Response -- Empty body with 204 status code
-#         """
-#         customer = Customer.objects.get(pk=pk)
-#         customer.address = request.data["address"]
-#         customer.city = request.data["city"]
-#         customer.phone = request.data["phone"]
-#         customer.save()
-
-#         user = User.objects.get(pk=pk)
-#         user.first_name = request.data["first_name"]
-#         user.last_name = request.data["last_name"]
-#         user.email = request.data["email"]
-
-#         user.save()
-
-#         return Response({}, status=status.HTTP_204_NO_CONTENT)
 
     def partial_update(self, request, pk=None):
         '''Handle PATCH'''
