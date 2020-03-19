@@ -6,19 +6,30 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from tldrss.models import Summary
+from tldrss.views.users import UserSerializer
 
 class SummarySerializer(serializers.HyperlinkedModelSerializer):
     '''Serializer for user-submitted summaries (tl;dr)'''
-    # user = serializers.ModelSerializer()
+    user = UserSerializer()
     class Meta:
         model = Summary
-        exclude = ['user']
-        # fields = '__all__'
+        # exclude = ['user']
+        fields = '__all__'
 class SummaryViewSet(viewsets.ModelViewSet):
     '''Viewset for article summaries 'tl;dr's'''
     queryset = Summary.objects.all()
     serializer_class = SummarySerializer
 
+    def list(self, request):
+        '''custom list method with filters'''
+
+        summaries = Summary.objects.all()
+
+        user_only = request.query_params.get('user', False)
+
+        if user_only == "true":
+            console.log('true')
+            summaries = summaries.filter(user__id=request.auth.user.id)
     # def create(self, request, *args, **kwargs):
     #     '''Handle POST'''
 

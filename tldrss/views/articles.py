@@ -25,7 +25,7 @@ class ArticleSerializer(serializers.HyperlinkedModelSerializer):
             view_name='article',
             lookup_field='id'
         )
-        fields = ('url', 'title', 'link', 'description', 'pub_date', 'created_at', 'feed')
+        fields = ('id', 'url', 'title', 'link', 'description', 'pub_date', 'created_at', 'feed')
 
 class ArticleViewSet(viewsets.ModelViewSet):
     '''ViewSet for RSS articles'''
