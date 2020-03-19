@@ -57,19 +57,19 @@ class SummaryViewSet(viewsets.ModelViewSet):
         # https://stackoverflow.com/questions/31785966/django-rest-framework-turn-on-pagination-on-a-viewset-like-modelviewset-pagina
         return self.get_paginated_response(serializer.data)
 
-    # def create(self, request, *args, **kwargs):
-    #     '''Handle POST'''
+    def create(self, request, *args, **kwargs):
+        '''Handle POST'''
 
-    #     new_summary = Summary()
-    #     new_summary.article_id = request.data['article_id']
-    #     new_summary.user_id = request.data['user_id']
-    #     new_summary.summary_text = request.data['summary_text']
+        new_summary = Summary()
+        new_summary.article_id = request.data['article_id']
+        new_summary.user_id = request.auth.user.id
+        new_summary.summary_text = request.data['summary_text']
 
-    #     new_summary.save()
+        new_summary.save()
 
-    #     serializer = SummarySerializer(new_summary, context={'request': request})
+        serializer = SummarySerializer(new_summary, context={'request': request})
 
-    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def partial_update(self, request, pk=None):
         '''Handle PATCH'''
