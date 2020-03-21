@@ -68,6 +68,11 @@ class ArticleViewSet(viewsets.ModelViewSet):
             articles = Article.objects.filter(title__icontains='corona') | Article.objects.filter(description__icontains='corona') | \
                 Article.objects.filter(title__icontains='covid') | Article.objects.filter(description__icontains='covid')
 
+        search = request.query_params.get('search', None)
+        if search:
+            articles = Article.objects.filter(title__icontains=search) | Article.objects.filter(description__icontains=search) | \
+                Article.objects.filter(title__icontains=search) | Article.objects.filter(description__icontains=search)
+
         page = self.paginate_queryset(articles)
         serializer=ArticleSerializer(
             page,
