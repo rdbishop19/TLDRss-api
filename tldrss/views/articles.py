@@ -8,8 +8,7 @@ from django.db import IntegrityError
 
 from tldrss.models import Article
 from tldrss.views.feeds import FeedSerializer
-
-
+from tldrss.views.custom_pagination import CustomPagination
 class ArticleSerializer(serializers.HyperlinkedModelSerializer):
     '''
         JSON serializer for RSS article
@@ -36,6 +35,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
 
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
+    pagination_class = CustomPagination
 
     def create(self, request, *args, **kwargs):
         '''Handle POST
@@ -74,7 +74,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
                 Article.objects.filter(title__icontains=search) | Article.objects.filter(description__icontains=search)
 
         page = self.paginate_queryset(articles)
-        serializer=ArticleSerializer(
+        serializer = ArticleSerializer(
             page,
             many=True,
             context={'request': request}
