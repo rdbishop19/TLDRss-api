@@ -10,3 +10,6 @@ class Article(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, auto_now=False)
     pub_date = models.DateTimeField(auto_now_add=False, auto_now=False, null=True)
     feed = models.ForeignKey(Feed, on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ('-created_at',)

@@ -12,3 +12,4 @@ class Summary(models.Model):
     class Meta:
         # verbose_name = "summary"
         verbose_name_plural = "summaries"
+        ordering = ('-created_on',)

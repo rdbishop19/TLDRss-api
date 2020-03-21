@@ -24,10 +24,10 @@ from tldrss.views import ArticleViewSet, FeedViewSet, SummaryViewSet, UserViewSe
 from tldrss.views import register_user, login_user
 
 router = routers.DefaultRouter(trailing_slash=False)
-router.register(r'article', ArticleViewSet)
-router.register(r'feed', FeedViewSet)
-router.register(r'summary', SummaryViewSet)
-router.register(r'user', UserViewSet)
+router.register(r'articles', ArticleViewSet)
+router.register(r'feeds', FeedViewSet)
+router.register(r'summaries', SummaryViewSet)
+router.register(r'users', UserViewSet)
 router.register(r'myfeeds', FeedSubscriptionViewSet)
 
 urlpatterns = router.urls + [

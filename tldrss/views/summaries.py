@@ -1,57 +1,75 @@
 import datetime
 
+from django.http import HttpResponseServerError
+
+# from rest_framework import viewsets
 from rest_framework import viewsets
 from rest_framework import serializers
 from rest_framework.response import Response
 from rest_framework import status
 
 from tldrss.models import Summary
+from tldrss.views.users import UserSerializer
 
 class SummarySerializer(serializers.HyperlinkedModelSerializer):
     '''Serializer for user-submitted summaries (tl;dr)'''
-    # user = serializers.ModelSerializer()
+    user = UserSerializer()
     class Meta:
         model = Summary
-        exclude = ['user']
-        # fields = '__all__'
+        # exclude = ['user']
+        fields = '__all__'
 class SummaryViewSet(viewsets.ModelViewSet):
     '''Viewset for article summaries 'tl;dr's'''
     queryset = Summary.objects.all()
     serializer_class = SummarySerializer
 
-    # def create(self, request, *args, **kwargs):
-    #     '''Handle POST'''
+    # def retrieve(self, request, pk=None):
+    #     '''get one item'''
 
-    #     new_summary = Summary()
-    #     new_summary.article_id = request.data['article_id']
-    #     new_summary.user_id = request.data['user_id']
-    #     new_summary.summary_text = request.data['summary_text']
+    #     try:
+    #         summary = Summary.objects.get(pk=pk)
+    #         serializer = SummarySerializer(summary, context={'request': request})
+    #         return Response(serializer.data)
+    #     except Exception as ex:
+    #         return HttpResponseServerError(ex)
 
-    #     new_summary.save()
+    def list(self, request, *args, **kwargs):
+        '''custom list method with filters'''
 
-    #     serializer = SummarySerializer(new_summary, context={'request': request})
+        summaries = Summary.objects.all()
 
-    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+        user_only = request.query_params.get('user', False)
+        article_id = request.query_params.get('article', None)
 
-# def partial_update(self, request, pk=None):
-#         """Handle PUT requests for an individual payment type item
-#         Returns:
-#             Response -- Empty body with 204 status code
-#         """
-#         customer = Customer.objects.get(pk=pk)
-#         customer.address = request.data["address"]
-#         customer.city = request.data["city"]
-#         customer.phone = request.data["phone"]
-#         customer.save()
+        if article_id:
+            summaries = summaries.filter(article_id=article_id)
 
-#         user = User.objects.get(pk=pk)
-#         user.first_name = request.data["first_name"]
-#         user.last_name = request.data["last_name"]
-#         user.email = request.data["email"]
+        if user_only == "true":
+            user = request.auth.user
+            summaries = summaries.filter(user_id=user.id)
 
-#         user.save()
+        page = self.paginate_queryset(summaries)
+        serializer = SummarySerializer(
+            page,
+            many=True,
+            context={'request': request}
+        )
+        # https://stackoverflow.com/questions/31785966/django-rest-framework-turn-on-pagination-on-a-viewset-like-modelviewset-pagina
+        return self.get_paginated_response(serializer.data)
 
-#         return Response({}, status=status.HTTP_204_NO_CONTENT)
+    def create(self, request, *args, **kwargs):
+        '''Handle POST'''
+
+        new_summary = Summary()
+        new_summary.article_id = request.data['article_id']
+        new_summary.user_id = request.auth.user.id
+        new_summary.summary_text = request.data['summary_text']
+
+        new_summary.save()
+
+        serializer = SummarySerializer(new_summary, context={'request': request})
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def partial_update(self, request, pk=None):
         '''Handle PATCH'''
