@@ -4,7 +4,7 @@ Back-end Django REST API for TL;DRss client app.
 
 ## Running the app
 
-Once completting all installation steps below, simply run 
+Once completing all installation steps below, simply run 
 
 ### `python manage.py runserver` 
 
