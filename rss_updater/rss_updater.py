@@ -44,16 +44,12 @@ def get_updated_articles() -> None:
                     new_entry.pub_date = None
 
                 new_entry.title = feedentry.get('title', '')
-                print(new_entry.title)
                 remove_quotes = new_entry.title.replace('&quot;', '"')
                 new_entry.title = remove_quotes
-                print(new_entry.title)
                 remove_apostrophe = new_entry.title.replace("&#39;", "\'")
                 new_entry.title = remove_apostrophe
-                print(new_entry.title)
                 remove_ampersand = new_entry.title.replace('&amp;', "&")
                 new_entry.title = remove_ampersand
-                print(new_entry.title)
                 new_entry.link = feedentry.get('link', '')
                 new_entry.description = feedentry.get('description', '')
                 new_entry.feed_id = feed.id
