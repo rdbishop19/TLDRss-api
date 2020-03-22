@@ -75,7 +75,11 @@ class ArticleViewSet(viewsets.ModelViewSet):
         feed = request.query_params.get('feed', None)
         if feed:
             articles = Article.objects.filter(feed_id=feed)
-            
+
+        custom = request.query_params.get('custom', None)
+        if custom:
+            articles = Article.objects.filter(feed_id__subscriptions__user=request.auth.user)
+
         page = self.paginate_queryset(articles)
         serializer = ArticleSerializer(
             page,
