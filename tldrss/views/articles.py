@@ -63,7 +63,6 @@ class ArticleViewSet(viewsets.ModelViewSet):
         articles = Article.objects.all()
 
         coronavirus = request.query_params.get('coronavirus', None)
-
         if coronavirus == 'true':
             articles = Article.objects.filter(title__icontains='corona') | Article.objects.filter(description__icontains='corona') | \
                 Article.objects.filter(title__icontains='covid') | Article.objects.filter(description__icontains='covid')
@@ -72,6 +71,14 @@ class ArticleViewSet(viewsets.ModelViewSet):
         if search:
             articles = Article.objects.filter(title__icontains=search) | Article.objects.filter(description__icontains=search) | \
                 Article.objects.filter(title__icontains=search) | Article.objects.filter(description__icontains=search)
+
+        feed = request.query_params.get('feed', None)
+        if feed:
+            articles = Article.objects.filter(feed_id=feed)
+
+        custom = request.query_params.get('custom', None)
+        if custom:
+            articles = Article.objects.filter(feed_id__subscriptions__user=request.auth.user)
 
         page = self.paginate_queryset(articles)
         serializer = ArticleSerializer(

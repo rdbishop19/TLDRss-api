@@ -8,3 +8,6 @@ class FeedSubscription(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions')
     feed = models.ForeignKey(Feed, on_delete=models.CASCADE, related_name='subscriptions')
+
+    class Meta:
+        unique_together = ["user", "feed"]
