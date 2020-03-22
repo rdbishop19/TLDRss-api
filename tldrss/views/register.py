@@ -31,7 +31,7 @@ def register_user(request):
     token = Token.objects.create(user=new_user)
 
     # return data to client
-    data = json.dumps({'token': token.key})
+    data = json.dumps({'token': token.key, 'user': { 'username': new_user.username, 'email': new_user.email}})
 
     return HttpResponse(data, content_type='application/json')
 
@@ -51,10 +51,11 @@ def login_user(request):
         username = req_body['username']
         password = req_body['password']
         authenticated_user = authenticate(username=username, password=password)
+        print(authenticated_user)
 
         if authenticated_user is not None:
             token = Token.objects.get(user=authenticated_user)
-            data = json.dumps({'valid': True, 'token': token.key})
+            data = json.dumps({'valid': True, 'token': token.key, 'user': { 'username': username, 'email': authenticated_user.email}})
             return HttpResponse(data, content_type='application/json')
 
         else:
