@@ -27,3 +27,17 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+    def list(self, request, *args, **kwargs):
+        '''List User entities'''
+
+        users = User.objects.all()
+
+        user = request.query_params.get("self", None)
+
+        if user:
+            users = User.objects.filter(id=request.auth.user.id)
+        
+        serializer = UserSerializer(users, many=True, context={'request': request})
+
+        return Response(serializer.data)
