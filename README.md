@@ -13,23 +13,25 @@ Once completing all installation steps below, simply run
 
 First, make sure you have the development client-side React app running: [https://github.com/rdbishop19/TLDRss](Installation) 
 
-Clone this repository. `cd` into the project directory and run:
-
-### `python manage.py migrate`
-
-## Load example data
-
-### `python manage.py loaddata`
+Clone this repository. `cd` into the project directory and run the following:
 
 ## Setup local env
 
-### `python -m venv env`
-### `source env/bin/activate` (MAC)
-### `source env/Scripts/activate` (PC)
+- `python -m venv env`
+- `source env/bin/activate` (MAC)
+- `source env/Scripts/activate` (PC)
 
 ## Dependencies
 
-### `pip install -r requirements.txt`
+- `pip install -r requirements.txt`
+
+## Make Migrations
+
+- `python manage.py migrate`
+
+## Load example data
+
+- `python manage.py loaddata fixtures.json`
 
 # Browseable API (optional) 
 
