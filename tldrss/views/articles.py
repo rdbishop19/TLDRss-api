@@ -5,6 +5,7 @@ from rest_framework import serializers
 from rest_framework import status
 from rest_framework.response import Response
 from django.db import IntegrityError
+from django.db.models import Count
 
 from tldrss.models import Article
 from tldrss.views.feeds import FeedSerializer
@@ -17,7 +18,8 @@ class ArticleSerializer(serializers.HyperlinkedModelSerializer):
             serializers.HyperLinkedModelSerializer
     '''
     feed = FeedSerializer()
-
+    upvote_count = serializers.SerializerMethodField()
+    # upvotes = serializers.HyperlinkedModelSerializer(many=True)
     class Meta:
         model = Article
         # defining the `url` field is not actually needed like we did in class.
@@ -27,13 +29,15 @@ class ArticleSerializer(serializers.HyperlinkedModelSerializer):
             lookup_field='id'
         )
         fields = ('id', 'url', 'title', 'link', 'description',
-                  'pub_date', 'created_at', 'feed')
+                  'pub_date', 'created_at', 'feed', 'upvote_count')
 
+    def get_upvote_count(self, obj):
+        return obj.upvotes.count()
 
 class ArticleViewSet(viewsets.ModelViewSet):
     '''ViewSet for RSS articles'''
-
     queryset = Article.objects.all()
+    # queryset = Article.objects.annotate(relevant=Count('upvotes')).order_by('relevant')
     serializer_class = ArticleSerializer
     pagination_class = CustomPagination
 
@@ -62,27 +66,35 @@ class ArticleViewSet(viewsets.ModelViewSet):
 
         articles = Article.objects.all()
 
+        sort = request.query_params.get('sort', None)
+        if sort:
+            articles = Article.objects.annotate(relevant=Count('upvotes')).order_by('-upvotes')
+
         coronavirus = request.query_params.get('coronavirus', None)
         if coronavirus == 'true':
-            articles = Article.objects.filter(title__icontains='corona') | Article.objects.filter(description__icontains='corona') | \
+            articles = articles.filter(title__icontains='corona') | Article.objects.filter(description__icontains='corona') | \
                 Article.objects.filter(title__icontains='covid') | Article.objects.filter(description__icontains='covid')
 
         search = request.query_params.get('search', None)
         if search:
-            articles = Article.objects.filter(title__icontains=search) | Article.objects.filter(description__icontains=search) | \
-                Article.objects.filter(title__icontains=search) | Article.objects.filter(description__icontains=search)
+            articles = articles.filter(title__icontains=search) | articles.filter(description__icontains=search) | \
+                articles.filter(title__icontains=search) | articles.filter(description__icontains=search)
 
         feed = request.query_params.get('feed', None)
         if feed:
-            articles = Article.objects.filter(feed_id=feed)
+            articles = articles.filter(feed_id=feed)
 
         custom = request.query_params.get('custom', None)
         if custom:
-            articles = Article.objects.filter(feed_id__subscriptions__user=request.auth.user)
+            articles = articles.filter(feed_id__subscriptions__user=request.auth.user)
 
         saved = request.query_params.get('saved', None)
         if saved:
-            articles = Article.objects.filter(user_saves__user=request.auth.user)
+            articles = articles.filter(user_saves__user=request.auth.user)
+
+        favorites = request.query_params.get('favorites', None)
+        if favorites:
+            articles = articles.filter(upvotes__user=request.auth.user)
 
         page = self.paginate_queryset(articles)
         serializer = ArticleSerializer(

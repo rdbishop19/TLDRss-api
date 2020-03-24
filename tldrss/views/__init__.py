@@ -4,4 +4,5 @@ from .summaries import SummaryViewSet
 from .users import UserViewSet
 from .feed_subscriptions import FeedSubscriptionViewSet
 from .saved_articles import SavedArticleViewSet
+from .article_upvotes import ArticleUpvoteViewSet
 from .register import register_user, login_user
