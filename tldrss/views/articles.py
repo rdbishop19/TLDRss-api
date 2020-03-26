@@ -4,12 +4,28 @@ from rest_framework import viewsets
 from rest_framework import serializers
 from rest_framework import status
 from rest_framework.response import Response
+
 from django.db import IntegrityError
-from django.db.models import Count
+
+from django.db.models import Count, F, ExpressionWrapper, Func, IntegerField,  FloatField
+from django.db.models.functions import Now
 
 from tldrss.models import Article
 from tldrss.views.feeds import FeedSerializer
 from tldrss.views.custom_pagination import CustomPagination
+
+class JulianDay(Func):
+    function = ''
+    output_field = IntegerField()
+
+    def as_postgresql(self, compiler, connection):
+        self.template = "CAST (to_char(%(expressions)s, 'J') AS INTEGER)"
+        return self.as_sql(compiler, connection)
+
+    def as_sqlite(self, compiler, connection):
+        self.template = 'julianday(%(expressions)s)'
+        return self.as_sql(compiler, connection)
+
 class ArticleSerializer(serializers.HyperlinkedModelSerializer):
     '''
         JSON serializer for RSS article
@@ -67,13 +83,19 @@ class ArticleViewSet(viewsets.ModelViewSet):
         articles = Article.objects.all()
 
         sort = request.query_params.get('sort', None)
+        relevant = request.query_params.get('relevant', None)
         if sort == 'true':
-            articles = Article.objects.annotate(relevant=Count('upvotes')).order_by('-upvotes')
+            articles = articles.annotate(Count('upvotes', distinct=True)).order_by('-upvotes').distinct()
+            if relevant == 'true':
+                #### https://stackoverflow.com/questions/38707848/query-annotation-with-date-difference
+                articles = Article.objects.annotate(relevant=Count('upvotes')) \
+                    .annotate(diff=(JulianDay(Now())-JulianDay(F('pub_date')))) \
+                    .annotate(relevance=ExpressionWrapper(((Count('upvotes'))/((F('diff')+2)**1.8)), output_field=FloatField())).order_by('-relevance').distinct()
 
         coronavirus = request.query_params.get('coronavirus', None)
         if coronavirus == 'true':
-            articles = articles.filter(title__icontains='corona') | Article.objects.filter(description__icontains='corona') | \
-                Article.objects.filter(title__icontains='covid') | Article.objects.filter(description__icontains='covid')
+            articles = articles.filter(title__icontains='corona').distinct() | Article.objects.filter(description__icontains='corona').distinct() | \
+                Article.objects.filter(title__icontains='covid').distinct() | Article.objects.filter(description__icontains='covid').distinct()
 
         search = request.query_params.get('search', None)
         if search:
@@ -95,6 +117,10 @@ class ArticleViewSet(viewsets.ModelViewSet):
         favorites = request.query_params.get('favorites', None)
         if favorites:
             articles = articles.filter(upvotes__user=request.auth.user)
+
+        usersummaries = request.query_params.get('usersummaries', None)
+        if usersummaries:
+            articles = articles.filter(summary__user=request.auth.user)
 
         page = self.paginate_queryset(articles)
         serializer = ArticleSerializer(
