@@ -118,6 +118,10 @@ class ArticleViewSet(viewsets.ModelViewSet):
         if favorites:
             articles = articles.filter(upvotes__user=request.auth.user)
 
+        usersummaries = request.query_params.get('usersummaries', None)
+        if usersummaries:
+            articles = articles.filter(summary__user=request.auth.user)
+
         page = self.paginate_queryset(articles)
         serializer = ArticleSerializer(
             page,
