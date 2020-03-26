@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import F
 from .feed import Feed
 
 class Article(models.Model):
@@ -12,4 +13,5 @@ class Article(models.Model):
     feed = models.ForeignKey(Feed, on_delete=models.CASCADE)
 
     class Meta:
-        ordering = ('-created_at',)
+        ordering = [F('pub_date').desc(nulls_last=True), '-created_at',]
+        

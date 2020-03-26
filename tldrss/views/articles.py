@@ -67,7 +67,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
         articles = Article.objects.all()
 
         sort = request.query_params.get('sort', None)
-        if sort:
+        if sort == 'true':
             articles = Article.objects.annotate(relevant=Count('upvotes')).order_by('-upvotes')
 
         coronavirus = request.query_params.get('coronavirus', None)
