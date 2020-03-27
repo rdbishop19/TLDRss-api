@@ -85,17 +85,17 @@ class ArticleViewSet(viewsets.ModelViewSet):
         sort = request.query_params.get('sort', None)
         relevant = request.query_params.get('relevant', None)
         if sort == 'true':
-            articles = articles.annotate(Count('upvotes', distinct=True)).order_by('-upvotes').distinct()
+            articles = articles.annotate(Count('upvotes', distinct=True)).order_by('-upvotes')
             if relevant == 'true':
                 #### https://stackoverflow.com/questions/38707848/query-annotation-with-date-difference
                 articles = Article.objects.annotate(relevant=Count('upvotes')) \
                     .annotate(diff=(JulianDay(Now())-JulianDay(F('pub_date')))) \
-                    .annotate(relevance=ExpressionWrapper(((Count('upvotes'))/((F('diff')+2)**1.8)), output_field=FloatField())).order_by('-relevance').distinct()
+                    .annotate(relevance=ExpressionWrapper(((Count('upvotes'))/((F('diff')+2)**1.8)), output_field=FloatField())).order_by(F('relevance').desc(nulls_last=True))
 
         coronavirus = request.query_params.get('coronavirus', None)
         if coronavirus == 'true':
-            articles = articles.filter(title__icontains='corona').distinct() | Article.objects.filter(description__icontains='corona').distinct() | \
-                Article.objects.filter(title__icontains='covid').distinct() | Article.objects.filter(description__icontains='covid').distinct()
+            articles = articles.filter(title__icontains='corona') | Article.objects.filter(description__icontains='corona') | \
+                Article.objects.filter(title__icontains='covid') | Article.objects.filter(description__icontains='covid')
 
         search = request.query_params.get('search', None)
         if search:
