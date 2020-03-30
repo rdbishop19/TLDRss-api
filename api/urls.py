@@ -20,7 +20,7 @@ from django.conf import settings  # debug-toolbar
 from rest_framework import routers
 from rest_framework.authtoken.views import obtain_auth_token
 
-from tldrss.views import ArticleViewSet, FeedViewSet, SummaryViewSet, UserViewSet, FeedSubscriptionViewSet, SavedArticleViewSet, ArticleUpvoteViewSet
+from tldrss.views import ArticleViewSet, FeedViewSet, SummaryViewSet, UserViewSet, FeedSubscriptionViewSet, SavedArticleViewSet, ArticleUpvoteViewSet, SummaryUpvoteViewSet
 from tldrss.views import register_user, login_user
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -31,6 +31,7 @@ router.register(r'users', UserViewSet)
 router.register(r'myfeeds', FeedSubscriptionViewSet)
 router.register(r'savedarticles', SavedArticleViewSet)
 router.register(r'articleupvotes', ArticleUpvoteViewSet)
+router.register(r'summaryupvotes', SummaryUpvoteViewSet)
 
 urlpatterns = router.urls + [
     path('', include(router.urls)),
