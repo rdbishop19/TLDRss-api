@@ -13,6 +13,7 @@ class SummaryUpvote(models.Model):
     class Meta:
         verbose_name = ("summaryupvote")
         verbose_name_plural = ("summaryupvote")
+        unique_together = ['user', 'summary']
 
     # def __str__(self):
     #     return self.name

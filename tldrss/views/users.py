@@ -20,7 +20,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         #     lookup_field='id'
         # )
         
-        fields = ('id', 'username', 'url', 'upvotes')
+        fields = ('id', 'username', 'url',)
         # fields = ('id', 'username','first_name', 'last_name', 'email', 'url')
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):

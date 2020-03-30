@@ -1,6 +1,7 @@
-import datetime
+from datetime import datetime
 
 from django.http import HttpResponseServerError
+from django.db.models import Count, F, ExpressionWrapper, Func, FloatField, IntegerField
 
 # from rest_framework import viewsets
 from rest_framework import viewsets
@@ -11,13 +12,23 @@ from rest_framework import status
 from tldrss.models import Summary
 from tldrss.views.users import UserSerializer
 
+class Epoch(Func):
+    '''Create an SQL 'EXTRACT' fuction template'''
+    function = 'EXTRACT'
+    template = "%(function)s('epoch' from %(expressions)s)"
+
 class SummarySerializer(serializers.HyperlinkedModelSerializer):
     '''Serializer for user-submitted summaries (tl;dr)'''
     user = UserSerializer()
+    upvote_count = serializers.SerializerMethodField()
     class Meta:
         model = Summary
         # exclude = ['user']
-        fields = '__all__'
+        fields = ('id', 'url', 'user', 'upvote_count', 'summary_text', 'created_on', 'updated_on', 'article')
+
+    def get_upvote_count(self, obj):
+        return obj.upvotes.count()
+
 class SummaryViewSet(viewsets.ModelViewSet):
     '''Viewset for article summaries 'tl;dr's'''
     queryset = Summary.objects.all()
@@ -36,7 +47,10 @@ class SummaryViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         '''custom list method with filters'''
 
-        summaries = Summary.objects.all()
+        summaries = Summary.objects.annotate(relevant=Count('upvotes')) \
+                    .annotate(diff=(Epoch(datetime.utcnow() - F('created_on'))/3600)) \
+                    .annotate(relevance=ExpressionWrapper(((Count('upvotes'))/(((F('diff'))+2)**1.8)), output_field=FloatField())) \
+                    .order_by(F('relevance').desc(nulls_last=True))
 
         user_only = request.query_params.get('user', False)
         article_id = request.query_params.get('article', None)
