@@ -9,30 +9,27 @@ from rest_framework.response import Response
 from django.db import IntegrityError
 
 from django.db.models import Count, F, ExpressionWrapper, Func, FloatField, IntegerField
-from django.db.models.functions import Now
-from django.db.models.functions import Coalesce, Cast
+# from django.db.models.functions import Now
 
 from tldrss.models import Article
 from tldrss.views.feeds import FeedSerializer
 from tldrss.views.custom_pagination import CustomPagination
-
-
-NullIntegerField = IntegerField(null=True)
-
 class Epoch(Func):
+    '''Create an SQL 'EXTRACT' fuction template'''
     function = 'EXTRACT'
     template = "%(function)s('epoch' from %(expressions)s)"
-class JulianDay(Func):
-    function = ''
-    output_field = FloatField()
+    
+# class JulianDay(Func):
+#     function = ''
+#     output_field = FloatField()
 
-    def as_postgresql(self, compiler, connection):
-        self.template = "CAST (to_char(%(expressions)s, 'J') AS FLOAT)"
-        return self.as_sql(compiler, connection)
+#     def as_postgresql(self, compiler, connection):
+#         self.template = "CAST (to_char(%(expressions)s, 'J') AS FLOAT)"
+#         return self.as_sql(compiler, connection)
 
-    def as_sqlite(self, compiler, connection):
-        self.template = 'julianday(%(expressions)s)'
-        return self.as_sql(compiler, connection)
+#     def as_sqlite(self, compiler, connection):
+#         self.template = 'julianday(%(expressions)s)'
+#         return self.as_sql(compiler, connection)
 
 class ArticleSerializer(serializers.HyperlinkedModelSerializer):
     '''
@@ -99,7 +96,8 @@ class ArticleViewSet(viewsets.ModelViewSet):
                 # .annotate(diff=(JulianDay(Now())-JulianDay(F('pub_date')))) \
                 articles = Article.objects.annotate(relevant=Count('upvotes')) \
                     .annotate(diff=(Epoch(datetime.utcnow() - F('pub_date'))/3600)) \
-                    .annotate(relevance=ExpressionWrapper(((Count('upvotes'))/(((F('diff'))+2)**1.8)), output_field=FloatField())).order_by(F('relevance').desc(nulls_last=True))
+                    .annotate(relevance=ExpressionWrapper(((Count('upvotes'))/(((F('diff'))+2)**1.8)), output_field=FloatField())) \
+                    .order_by(F('relevance').desc(nulls_last=True))
 
         coronavirus = request.query_params.get('coronavirus', None)
         if coronavirus == 'true':
